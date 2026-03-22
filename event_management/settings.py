@@ -36,7 +36,11 @@ SECRET_KEY = 'django-insecure-n$ma^v!$mgngh+g331eg!0j+=^#g&3wxqn8-!p)=h^!17meryc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".onrender.com",
+]
 
 GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID', default='')
 FACEBOOK_APP_ID = env('FACEBOOK_APP_ID', default='')
