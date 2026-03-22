@@ -8,3 +8,6 @@ django-allauth
 requests
 razorpay
 django-environ
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
