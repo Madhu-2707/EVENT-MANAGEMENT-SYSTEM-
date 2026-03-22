@@ -1,0 +1,221 @@
+{% extends 'core/admin/admin_base.html' %}
+
+{% block admin_content %}
+<h2 style="margin-bottom: 30px;">Admin <span style="color: var(--accent-color);">Panel</span></h2>
+<!-- Stats Cards Column -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    <!-- Total Revenue -->
+    <div class="glass-card" style="padding: 25px; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 15px; background: rgba(46, 204, 113, 0.1); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-rupee-sign" style="font-size: 1.5rem; color: #2ecc71;"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.8rem; margin: 0;">₹{{ formatted_revenue }}</h3>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Total Revenue</p>
+        </div>
+    </div>
+
+    <!-- Total Bookings -->
+    <div class="glass-card" style="padding: 25px; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 15px; background: rgba(138, 43, 226, 0.1); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-calendar-check" style="font-size: 1.5rem; color: var(--accent-color);"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.8rem; margin: 0;">{{ total_bookings }}</h3>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Total Bookings</p>
+        </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="glass-card" style="padding: 25px; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 15px; background: rgba(52, 152, 219, 0.1); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-users" style="font-size: 1.5rem; color: #3498db;"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.8rem; margin: 0;">{{ total_users }}</h3>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Total Users</p>
+        </div>
+    </div>
+
+    <!-- Pending Balance -->
+    <div class="glass-card" style="padding: 25px; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 15px; background: rgba(241, 196, 15, 0.1); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-clock" style="font-size: 1.5rem; color: #f1c40f;"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.8rem; margin: 0;">{{ pending_bookings }}</h3>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Pending Bookings</p>
+        </div>
+    </div>
+</div>
+
+<!-- Special Insights Row -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 40px;">
+    <!-- Upcoming Events Today -->
+    <div class="glass-card" style="padding: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0;"><i class="fas fa-star" style="color: #f1c40f; margin-right: 10px;"></i> Upcoming Events <span style="color: var(--accent-color);">Today</span></h3>
+            <span style="background: var(--accent-color); color: black; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">{{ today_events.count }} Events</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            {% for event in today_events %}
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="display: block;">{{ event.customer_name }}</strong>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">{{ event.event_type }} @ {{ event.venue }}</span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="display: block; font-weight: 700;">{{ event.time_slot }}</span>
+                    <a href="#" style="color: var(--accent-color); font-size: 0.8rem; text-decoration: none;">Details <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: var(--text-muted); padding: 20px 0;">No events scheduled for today.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pending Balance Alerts -->
+    <div class="glass-card" style="padding: 30px;">
+        <h3 style="margin-bottom: 25px;"><i class="fas fa-exclamation-triangle" style="color: #e67e22; margin-right: 10px;"></i> Pending <span style="color: #e67e22;">Balance Payments</span></h3>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            {% for b in pending_balance_bookings %}
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #e67e22;">
+                <div>
+                    <strong style="display: block;">{{ b.customer_name }}</strong>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Event in {{ b.event_date|timeuntil }}</span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="display: block; color: #e67e22; font-weight: 700;">₹{{ b.total_price|floatformat:0 }}</span>
+                    <span style="color: var(--text-muted); font-size: 0.75rem;">Bal: ₹{{ b.total_price|add:"-5000"|floatformat:0 }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: var(--text-muted); padding: 20px 0;">No pending balances found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 40px;">
+    <!-- Revenue Overview Chart -->
+    <div class="glass-card" style="padding: 30px; min-height: 400px;">
+        <h3 style="margin-bottom: 25px;">Revenue & <span style="color: var(--accent-color);">Bookings Analytics</span></h3>
+        <canvas id="revenueChart"></canvas>
+    </div>
+
+    <!-- Event Popularity Chart -->
+    <div class="glass-card" style="padding: 30px; min-height: 400px; display: flex; flex-direction: column;">
+        <h3 style="margin-bottom: 25px;">Event <span style="color: var(--accent-color);">Distribution</span></h3>
+        <div style="flex: 1; position: relative;">
+            <canvas id="eventChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Shared configuration for charts
+        Chart.defaults.color = 'rgba(255,255,255,0.6)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // Revenue & Bookings Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ month_labels|safe }},
+                    datasets: [
+                        {
+                            label: 'Revenue (₹)',
+                            type: 'line',
+                            data: {{ monthly_revenue|safe }},
+                            borderColor: '#8a2be2',
+                            backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Bookings',
+                            type: 'bar',
+                            data: {{ monthly_bookings|safe }},
+                            backgroundColor: 'rgba(52, 152, 219, 0.4)',
+                            borderRadius: 5,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', align: 'end' },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12 }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Revenue (₹)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Bookings' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Event Distribution Chart
+        const eventCtx = document.getElementById('eventChart');
+        if (eventCtx) {
+            new Chart(eventCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ event_labels|safe }},
+                    datasets: [{
+                        data: {{ event_counts|safe }},
+                        backgroundColor: [
+                            'rgba(138, 43, 226, 0.8)',
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(241, 196, 15, 0.8)',
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(155, 89, 182, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#1a1a1a',
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12 }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

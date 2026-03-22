@@ -1,0 +1,95 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <i class="fas fa-check-circle" style="font-size: 5rem; color: #2ecc71; margin-bottom: 20px;"></i>
+        <h2 style="font-size: 2.8rem; margin-bottom: 10px;">Booking <span style="color: var(--accent-color);">Confirmed!</span></h2>
+        <p style="font-size: 1.1rem; color: var(--text-muted);">Your payment was successful. We are excited to plan your event!</p>
+    </div>
+
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div class="glass-card" style="padding: 40px; border: 1px solid rgba(46, 204, 113, 0.3); background: rgba(46, 204, 113, 0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 20px; margin-bottom: 30px;">
+                <h3 style="margin: 0; font-size: 1.5rem;">Booking Details</h3>
+                <span style="background: var(--accent-color); color: black; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;">
+                    ID: {{ booking.booking_id }}
+                </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <!-- Event Info -->
+                <div>
+                    <h4 style="color: var(--accent-color); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">Event Information</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <p style="margin: 0;"><strong style="color: var(--text-muted); font-size: 0.9rem; display: block;">Customer Name</strong> {{ booking.customer_name }}</p>
+                        <p style="margin: 0;"><strong style="color: var(--text-muted); font-size: 0.9rem; display: block;">Event Type</strong> {{ booking.event_type }}</p>
+                        <p style="margin: 0;"><strong style="color: var(--text-muted); font-size: 0.9rem; display: block;">Event Date</strong> {{ booking.event_date }}</p>
+                        <p style="margin: 0;"><strong style="color: var(--text-muted); font-size: 0.9rem; display: block;">Venue</strong> {{ booking.venue }}<br><small style="opacity: 0.7;">{{ booking.venue_address }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Package & Services -->
+                <div>
+                    <h4 style="color: var(--accent-color); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">Package & Services</h4>
+                    <p style="margin-bottom: 10px;"><strong>Package:</strong> {{ booking.budget_package }}</p>
+                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Selected Services</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            {% for service in booking.services.all %}
+                            <span style="background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 15px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1);">
+                                {{ service.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 40px 0;">
+
+            <!-- Payment Summary -->
+            <div>
+                <h4 style="color: var(--accent-color); margin-bottom: 25px; text-align: center; font-size: 1.4rem;">Payment Summary</h4>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Total Amount</p>
+                        <h3 style="margin: 10px 0 0 0; font-size: 1.8rem;">₹{{ booking.total_price|floatformat:0 }}</h3>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: rgba(46, 204, 113, 0.05); border-radius: 15px; border: 1px solid rgba(46, 204, 113, 0.2);">
+                        <p style="margin: 0; color: #2ecc71; font-size: 0.9rem;">Advance Paid</p>
+                        <h3 style="margin: 10px 0 0 0; font-size: 1.8rem; color: #2ecc71;">₹{{ booking.amount_paid|floatformat:0 }}</h3>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: rgba(241, 196, 15, 0.05); border-radius: 15px; border: 1px solid rgba(241, 196, 15, 0.2);">
+                        <p style="margin: 0; color: #f1c40f; font-size: 0.9rem;">Remaining Balance</p>
+                        <h3 style="margin: 10px 0 0 0; font-size: 1.8rem; color: #f1c40f;">₹{{ remaining_balance|floatformat:0 }}</h3>
+                    </div>
+                </div>
+
+                {% if remaining_balance > 0 %}
+                <div style="margin-top: 30px; padding: 20px; background: rgba(241, 196, 15, 0.1); border-radius: 12px; border: 1px solid rgba(241, 196, 15, 0.2); display: flex; align-items: flex-start; gap: 15px;">
+                    <i class="fas fa-info-circle" style="color: #f1c40f; font-size: 1.2rem; margin-top: 3px;"></i>
+                    <p style="margin: 0; color: #f1c40f; line-height: 1.5;">
+                        <strong>Important Payment Policy:</strong><br>
+                        The remaining balance must be paid at least 10 days before the event date to avoid any scheduling issues or cancellation.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 50px; display: flex; justify-content: center; gap: 20px;">
+                <a href="{% url 'home' %}" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white; padding: 12px 30px; border-radius: 30px;">
+                    <i class="fas fa-home"></i> Go to Home
+                </a>
+                <a href="{% url 'user_dashboard' %}" class="btn-primary" style="padding: 12px 30px; border-radius: 30px;">
+                    <i class="fas fa-th-large"></i> Go to My Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; color: var(--text-muted); font-size: 0.9rem;">
+            <p><i class="fas fa-envelope"></i> A copy of your booking confirmation has been sent to {{ booking.customer_email }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

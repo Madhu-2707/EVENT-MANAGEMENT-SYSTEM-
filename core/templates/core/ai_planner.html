@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 3rem;"><i class="fas fa-robot" style="color: var(--accent-color);"></i> AI Event <span style="color: var(--accent-color);">Planner</span></h2>
+        <p style="color: var(--text-muted);">Let our smart engine recommend the perfect packages and budget breakdown for your event.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(300px, 1fr) 2fr; gap: 40px; align-items: start;">
+        
+        <!-- Input Form -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 25px;">Provide Event Details</h3>
+            <form action="{% url 'ai_planner' %}" method="post">
+                {% csrf_token %}
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px;">Event Type</label>
+                    <select name="event_type" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+                        <option value="Wedding" style="color:black;">Wedding</option>
+                        <option value="Birthday Party" style="color:black;">Birthday Party</option>
+                        <option value="Corporate Event" style="color:black;">Corporate Event</option>
+                        <option value="Engagement" style="color:black;">Engagement</option>
+                        <option value="Baby Shower" style="color:black;">Baby Shower</option>
+                        <option value="College Fest" style="color:black;">College Fest</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px;">Total Budget (₹)</label>
+                    <input type="number" name="total_budget" required placeholder="e.g. 500000" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+                </div>
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; margin-bottom: 5px;">Estimated Guest Count</label>
+                    <input type="number" name="guest_count" required placeholder="e.g. 200" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-magic"></i> Generate Plan</button>
+            </form>
+        </div>
+
+        <!-- Output / Results -->
+        <div>
+            {% if budget_breakdown %}
+            <div class="glass-card" style="margin-bottom: 40px;">
+                <h3 style="margin-bottom: 20px;">Smart <span style="color: var(--accent-color);">Budget Recommendation</span></h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center;">
+                    <div>
+                        <ul style="list-style: none;">
+                            <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                                <span><i class="fas fa-utensils" style="color: #2ecc71; width:20px;"></i> Catering (40%)</span>
+                                <strong>₹{{ catering }}</strong>
+                            </li>
+                            <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                                <span><i class="fas fa-gem" style="color: #3498db; width:20px;"></i> Venue & Decor (35%)</span>
+                                <strong>₹{{ venue_decor }}</strong>
+                            </li>
+                            <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                                <span><i class="fas fa-camera" style="color: #f1c40f; width:20px;"></i> Photo & Video (15%)</span>
+                                <strong>₹{{ photography }}</strong>
+                            </li>
+                            <li style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                <span><i class="fas fa-music" style="color: #e67e22; width:20px;"></i> Music & Others (10%)</span>
+                                <strong>₹{{ others }}</strong>
+                            </li>
+                        </ul>
+                        <div style="margin-top: 20px; text-align: right; font-size: 1.2rem; border-top: 2px solid var(--accent-color); padding-top: 10px;">
+                            Total: <strong style="color: var(--accent-color);">₹{{ total_budget }}</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="budgetChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px;">Recommended Packages (<span style="color: var(--accent-color);">AI Match</span>)</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                {% for service in recommended_services %}
+                <div class="glass-card" style="padding: 20px; text-align: center; border: 1px solid rgba(241, 196, 15, 0.3);">
+                    <i class="fas fa-star" style="color: var(--accent-color); font-size: 2rem; margin-bottom: 15px;"></i>
+                    <h4>{{ service.name }}</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 15px 0;">{{ service.description|truncatechars:80 }}</p>
+                    <strong style="font-size: 1.2rem; color: var(--accent-color); display: block; margin-bottom: 15px;">₹{{ service.price }}</strong>
+                    <button class="btn-primary" style="padding: 8px 20px; font-size: 0.9rem;" onclick="window.location.href='{% url 'home' %}#booking?service={{ service.id }}'">Select Package</button>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-muted);">No exact matching packages found. Please browse our <a href="{% url 'services' %}" style="color: var(--accent-color);">full catalog</a>.</p>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 15px; padding: 40px; text-align: center;">
+                <i class="fas fa-magic" style="font-size: 4rem; color: rgba(255,255,255,0.1); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-muted);">Awaiting your input...</h3>
+                <p style="color: var(--text-muted); max-width: 400px; margin-top: 10px;">Enter your event details on the left, and our AI will instantly construct the ideal budget plan and vendor selection.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% if budget_breakdown %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Catering', 'Venue & Decor', 'Photo & Video', 'Music & Others'],
+            datasets: [{
+                data: [
+                    {{ catering|default:"0" }},
+                    {{ venue_decor|default:"0" }},
+                    {{ photography|default:"0" }},
+                    {{ others|default:"0" }}
+                ],
+                backgroundColor: [
+                    '#2ecc71', '#3498db', '#f1c40f', '#e67e22'
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            cutout: '70%'
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

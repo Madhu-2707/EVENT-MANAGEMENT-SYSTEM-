@@ -1,0 +1,225 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 2.5rem;">Booking <span style="color: var(--accent-color);">Summary</span></h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+        <div class="glass-card">
+            <h3>Event Details</h3>
+            <table style="width: 100%; margin-top: 20px; text-align: left;">
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Customer Name</td><td style="color: var(--text-light);">{{ booking.customer_name }}</td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Phone</td><td style="color: var(--text-light);">{{ booking.customer_phone }}</td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Address</td><td style="color: var(--text-light); font-size: 0.9rem;">
+                    {{ booking.house_no }}, {{ booking.street }}<br>
+                    {{ booking.city }}, {{ booking.state }}<br>
+                    {{ booking.pin_code }}, {{ booking.country }}
+                </td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Event Type</td><td style="color: var(--accent-color);">{{ booking.event_type }}</td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Date</td><td style="color: var(--accent-color);">{{ booking.event_date }}</td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Time Slot</td><td style="color: var(--accent-color);">{{ booking.time_slot }}</td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Venue</td><td style="color: var(--accent-color);">
+                    {{ booking.venue }}<br>
+                    <small style="color: var(--text-muted); font-weight: 400;">{{ booking.venue_address }}</small>
+                </td></tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 10px 0;">Guests</td><td style="color: var(--accent-color);">{{ booking.guest_count }}</td></tr>
+                <tr><td style="padding: 10px 0;">Package</td><td style="color: var(--accent-color);">{{ booking.budget_package }}</td></tr>
+            </table>
+
+            <h3 style="margin-top: 40px;">Cost Breakdown</h3>
+            <ul style="list-style: none; margin-top: 20px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px dotted var(--glass-border); padding: 5px 0;">
+                    <span>Package Base Cost ({{ booking.budget_package }})</span>
+                    <span>₹{% if booking.budget_package == 'Luxury' %}20,000{% elif booking.budget_package == 'Standard' %}10,000{% else %}5,000{% endif %}</span>
+                </li>
+                {% for service in booking.services.all %}
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px dotted var(--glass-border); padding: 5px 0;">
+                    {% if 'Catering' in service.name %}
+                    <span>{{ service.name }} ({{ booking.guest_count }} guests × ₹300)</span>
+                    <span>₹{% widthratio booking.guest_count 1 300 %}</span>
+                    {% else %}
+                    <span>{{ service.name }}</span>
+                    <span>₹{{ service.price|floatformat:0 }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            <div style="margin-top: 30px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: 700;">
+                <span>Total Amount</span>
+                <span style="color: var(--accent-color);">₹{{ booking.total_price|floatformat:0 }}</span>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-lock" style="color:var(--accent-color);"></i> Secure Checkout</h3>
+            <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 0.95rem;">Select your payment preference and complete booking securely.</p>
+            
+            <div id="payment-options" style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Advance Payment Feature -->
+                <div class="glass-card" style="padding: 20px; border: 1px solid var(--accent-color); background: rgba(0, 242, 254, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <h4 style="margin: 0; color: var(--accent-color); font-size: 1.1rem;">Advance Payment</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">Pay ₹5,000 to secure your date</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="advance-toggle" onchange="togglePaymentMode()">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div id="advance-info" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>Advance Amount:</span>
+                            <span style="font-weight: 600; color: var(--accent-color);">₹5,000.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 15px; opacity: 0.8;">
+                            <span>Remaining Balance:</span>
+                            <span>₹<span id="remaining-balance"></span></span>
+                        </div>
+                        <p style="font-size: 18px; color: #ffcc00; margin-top: 10px; display: flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-info-circle"></i> The remaining balance should be completed at least 10 days before the event begins to avoid cancellation.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Features for Trust -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <i class="fas fa-credit-card" style="color: var(--accent-color); margin-bottom: 5px;"></i>
+                        <p style="margin:0; font-size: 0.7rem; color: var(--text-muted);">Secure Gateway</p>
+                    </div>
+                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <i class="fas fa-shield-alt" style="color: #2ecc71; margin-bottom: 5px;"></i>
+                        <p style="margin:0; font-size: 0.7rem; color: var(--text-muted);">SSL Encrypted</p>
+                    </div>
+                </div>
+
+                <!-- Secure Indicators Footer -->
+                <div style="text-align: center; padding: 10px; background: rgba(46, 204, 113, 0.05); border-radius: 10px; border: 1px solid rgba(46, 204, 113, 0.2);">
+                    <p style="margin: 0; font-size: 0.8rem; color: #2ecc71;">
+                        <i class="fas fa-lock"></i> Your payment is protected with secure encryption.
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button id="rzp-button" onclick="initiateRazorpay()" class="btn-primary" style="width: 100%; padding: 20px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 242, 254, 0.2);">
+                    <i class="fas fa-shield-check"></i> Confirm & Pay ₹<span id="button-amount"></span>
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <img src="https://razorpay.com/mobile/assets/payment-modes.png" alt="Payment Methods" style="max-width: 200px; filter: grayscale(1) invert(1) brightness(2); opacity: 0.6;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+
+    <script>
+        const totalPrice = parseFloat("{{ booking.total_price }}");
+        const advanceAmount = 5000;
+        
+        function updateUI() {
+            const isAdvance = document.getElementById('advance-toggle').checked;
+            const btnAmount = isAdvance ? advanceAmount : totalPrice;
+            const remaining = totalPrice - advanceAmount;
+            
+            document.getElementById('button-amount').innerText = btnAmount.toLocaleString('en-IN');
+            const remainingEl = document.getElementById('remaining-balance');
+            if(remainingEl) remainingEl.innerText = remaining > 0 ? remaining.toLocaleString('en-IN') : '0';
+            
+            const advanceInfo = document.getElementById('advance-info');
+            if(advanceInfo) advanceInfo.style.display = isAdvance ? 'block' : 'none';
+        }
+
+        function togglePaymentMode() {
+            updateUI();
+        }
+
+        async function initiateRazorpay() {
+            const isAdvance = document.getElementById('advance-toggle').checked;
+            const mode = isAdvance ? 'advance' : 'full';
+            const btn = document.getElementById('rzp-button');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Securely...';
+
+            try {
+                // Correct URL with leading slash
+                const response = await fetch(`/payment/create-order/{{ booking.id }}/?mode=${mode}`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                const options = {
+                    "key": data.key,
+                    "amount": data.amount,
+                    "currency": "INR",
+                    "name": "Zenvy Events",
+                    "description": isAdvance ? "Advance Booking Payment" : "Full Event Booking Payment",
+                    "order_id": data.order_id,
+                    "handler": function (response) {
+                        // Submit the verification form
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = "{% url 'payment_confirm' booking.id %}";
+                        
+                        const hiddenFields = {
+                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'razorpay_payment_id': response.razorpay_payment_id,
+                            'razorpay_order_id': response.razorpay_order_id,
+                            'razorpay_signature': response.razorpay_signature,
+                            'is_advance': isAdvance
+                        };
+
+                        for (const key in hiddenFields) {
+                            const field = document.createElement('input');
+                            field.type = 'hidden';
+                            field.name = key;
+                            field.value = hiddenFields[key];
+                            form.appendChild(field);
+                        }
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    },
+                    "prefill": {
+                        "name": data.customer_name,
+                        "email": data.customer_email,
+                        "contact": data.customer_phone
+                    },
+                    "theme": { "color": "#00f2fe" }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    alert("Payment Failed: " + response.error.description);
+                    btn.disabled = false;
+                    updateUI();
+                });
+                rzp.open();
+            } catch (error) {
+                alert("Payment Error: " + error.message);
+                btn.disabled = false;
+                updateUI();
+            }
+        }
+
+        // Initialize UI
+        updateUI();
+    </script>
+{% endblock %}

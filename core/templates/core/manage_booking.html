@@ -1,0 +1,110 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+            <h2 style="margin: 0;">Manage Event: <span style="color: var(--accent-color);">{{ booking.event_type }}</span></h2>
+            <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">
+                <i class="fas fa-map-marker-alt" style="color: var(--accent-color);"></i> {{ booking.venue }} - {{ booking.venue_address }}
+            </p>
+        </div>
+        <a href="{% if user.is_staff %}{% url 'admin_panel' %}{% else %}{% url 'home' %}{% endif %}" class="btn-primary" style="background: rgba(255,255,255,0.1);">
+            <i class="fas fa-arrow-left"></i> {% if user.is_staff %}Back to Admin Panel{% else %}Back to Home{% endif %}
+        </a>
+    </div>
+
+    <!-- Event Timeline section -->
+    <div class="glass-card" style="margin-bottom: 40px;">
+        <h3 style="margin-bottom: 25px;"><i class="fas fa-clock" style="color: var(--accent-color);"></i> Event <span style="color: var(--accent-color);">Timeline</span></h3>
+        {% if booking.timeline %}
+        <div style="display: flex; flex-direction: column; gap: 15px; border-left: 2px solid var(--accent-color); padding-left: 20px; margin-left: 10px;">
+            {% for event, time in booking.timeline.items %}
+            <div style="position: relative;">
+                <div style="position: absolute; left: -28px; top: 5px; width: 14px; height: 14px; background: var(--accent-color); border-radius: 50%;"></div>
+                <h4 style="margin: 0; color: white;">{{ event }}</h4>
+                <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;"><i class="fas fa-stopwatch"></i> {{ time }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">Timeline will be generated once your booking is confirmed.</p>
+        {% endif %}
+    </div>
+
+    <!-- Guest Management Section -->
+    <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3>Guest <span style="color: var(--accent-color);">Management</span> <small style="font-size:1rem; color:var(--text-muted); font-weight:normal;">({{ guests.count }} / {{ booking.guest_count }})</small></h3>
+            <button class="btn-primary" onclick="document.getElementById('addGuestModal').style.display='flex'">+ Add Guest</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <th style="padding: 15px;">Guest Name</th>
+                        <th style="padding: 15px;">Email</th>
+                        <th style="padding: 15px;">QR Pass</th>
+                        <th style="padding: 15px;">Status</th>
+                        <th style="padding: 15px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for guest in guests %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px; font-weight: 600;">{{ guest.name }}</td>
+                        <td style="padding: 15px; color:-var(--text-muted);">{{ guest.email }}</td>
+                        <td style="padding: 15px;">
+                            {% if guest.qr_code %}
+                            <a href="{{ guest.qr_code.url }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">
+                                <i class="fas fa-qrcode"></i> View QR
+                            </a>
+                            {% else %}
+                            <span style="color:var(--text-muted); font-size:0.8rem;">Generating...</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if guest.is_checked_in %}
+                            <span style="color: #2ecc71; font-weight:600;"><i class="fas fa-check-circle"></i> Checked In</span>
+                            {% else %}
+                            <span style="color: #f1c40f;"><i class="fas fa-clock"></i> Pending Check-In</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px;">
+                            <a href="{% url 'delete_guest' guest.id %}" onclick="return confirm('Remove this guest?')" style="color: #e74c3c; text-decoration: none;"><i class="fas fa-trash"></i> Remove</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 30px; text-align: center; color: var(--text-muted);">No guests added yet. Add guests to send them QR passes.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Add Guest Modal -->
+<div id="addGuestModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-card" style="width: 400px; padding: 40px; position:relative;">
+        <span onclick="document.getElementById('addGuestModal').style.display='none'" style="position:absolute; right:20px; top:20px; font-size:1.5rem; cursor:pointer;">&times;</span>
+        <h3 style="margin-bottom:20px;">Add New <span style="color:var(--accent-color);">Guest</span></h3>
+        <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">Adding a guest will automatically generate a unique QR code pass for event entry.</p>
+        <form action="{% url 'add_guest' booking.id %}" method="post">
+            {% csrf_token %}
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px;">Full Name</label>
+                <input type="text" name="name" required placeholder="John Doe" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); padding:10px; color:white; border-radius:5px;">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; margin-bottom:5px;">Email Address</label>
+                <input type="email" name="email" required placeholder="john@example.com" style="width:100%; background:rgba(255,255,255,0.05); padding:10px; border-radius:5px; border:1px solid var(--glass-border); color:white;">
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">Add & Generate Pass</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

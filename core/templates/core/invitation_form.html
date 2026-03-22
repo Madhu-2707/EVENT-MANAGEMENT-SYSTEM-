@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 3rem;">Create Your <span style="color: var(--accent-color);">Digital Invitation</span></h2>
+        <p style="color: var(--text-muted);">Customize the details and pick a professional theme</p>
+    </div>
+
+    <div class="glass-card" style="max-width: 900px; margin: 0 auto; padding: 50px;">
+        <form action="{% url 'create_invitation' booking.id %}" method="post">
+            {% csrf_token %}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <div style="grid-column: span 2;">
+                    <label>Host Name(s)</label>
+                    <input type="text" name="host_name" value="{{ invitation.host_name|default:booking.customer_name }}" required placeholder="e.g., Rahul & Priya" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div>
+                    <label>Event Title</label>
+                    <input type="text" name="event_title" value="{{ invitation.event_title|default:booking.event_type }}" required placeholder="e.g., The Wedding of Rahul & Priya" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div>
+                    <label>Event Type</label>
+                    <input type="text" name="event_type" value="{{ invitation.event_type|default:booking.event_type }}" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div>
+                    <label>Event Date</label>
+                    <input type="date" name="event_date" value="{{ invitation.event_date|date:'Y-m-d'|default:booking.event_date|date:'Y-m-d' }}" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div>
+                    <label>Event Time</label>
+                    <input type="text" name="event_time" value="{{ invitation.event_time|default:booking.time_slot }}" required placeholder="e.g., 6:30 PM onwards" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>Event Venue</label>
+                    <textarea name="event_venue" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white; min-height: 80px;">{% if invitation %}{{ invitation.event_venue }}{% else %}{{ booking.venue }}{% if booking.venue_address %}, {{ booking.venue_address }}{% endif %}{% endif %}</textarea>
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>Special Message (Optional)</label>
+                    <textarea name="message" placeholder="A brief message to your guests..." style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white; min-height: 80px;">{{ invitation.message|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 40px;">
+                <label style="display: block; margin-bottom: 20px; font-size: 1.2rem; font-weight: 600;">Choose a Template Theme</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                    {% for value, label in template_choices %}
+                    <label class="theme-option" style="cursor: pointer; position: relative; display: block; padding: 20px; text-align: center; border-radius: 15px; border: 2px solid {% if invitation.template_choice == value %}var(--accent-color){% else %}var(--glass-border){% endif %}; transition: all 0.3s;">
+                        <input type="radio" name="template_choice" value="{{ value }}" {% if invitation.template_choice == value or (not invitation and value == 'elegant') %}checked{% endif %} style="display: none;">
+                        <div style="font-size: 1.1rem; color: #fff;">{{ label }}</div>
+                        <div class="check-mark" style="position: absolute; top: 10px; right: 10px; color: var(--accent-color); display: {% if invitation.template_choice == value %}block{% else %}none{% endif %};">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.2rem;">
+                <i class="fas fa-magic"></i> Generate & Preview Invitation
+            </button>
+        </form>
+    </div>
+</section>
+
+<style>
+    .theme-option:hover {
+        border-color: var(--accent-color);
+        background: rgba(255, 215, 0, 0.05);
+    }
+    .theme-option input:checked + div + .check-mark {
+        display: block !important;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.theme-option').forEach(o => {
+                o.style.borderColor = 'var(--glass-border)';
+                o.querySelector('.check-mark').style.display = 'none';
+            });
+            this.style.borderColor = 'var(--accent-color)';
+            this.querySelector('.check-mark').style.display = 'block';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'core/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="glass-card" style="padding: 30px; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="margin: 0;">Booking <span style="color: var(--accent-color);">Management</span></h2>
+        
+        <form style="display: flex; gap: 15px;" method="get">
+            <div class="search-bar" style="width: 300px; margin: 0;">
+                <i class="fas fa-search" style="color: var(--text-muted);"></i>
+                <input type="text" name="search" placeholder="Search ID or Customer..." value="{{ search_query|default:'' }}">
+            </div>
+            <select name="status" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 5px 15px; border-radius: 50px; color: white; outline: none;">
+                <option value="" style="color: black;">All Status</option>
+                <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %} style="color: black;">Pending</option>
+                <option value="Confirmed" {% if status_filter == 'Confirmed' %}selected{% endif %} style="color: black;">Confirmed</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %} style="color: black;">Completed</option>
+            </select>
+            <button type="submit" class="btn-primary" style="padding: 10px 25px;">Filter</button>
+        </form>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <th style="padding: 20px;">Booking ID</th>
+                    <th style="padding: 20px;">Customer</th>
+                    <th style="padding: 20px;">Event Type</th>
+                    <th style="padding: 20px;">Date</th>
+                    <th style="padding: 20px;">Status</th>
+                    <th style="padding: 20px;">Total Price</th>
+                    <th style="padding: 20px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
+                    <td style="padding: 20px; font-weight: 700;">{{ booking.booking_id }}</td>
+                    <td style="padding: 20px;">
+                        <span style="display: block; font-weight: 600;">{{ booking.customer_name }}</span>
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">{{ booking.customer_email }}</span>
+                    </td>
+                    <td style="padding: 20px;">{{ booking.event_type }}</td>
+                    <td style="padding: 20px;">{{ booking.event_date }}</td>
+                    <td style="padding: 20px;">
+                        <span style="padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: {% if booking.status == 'Confirmed' %}rgba(46, 204, 113, 0.2){% elif booking.status == 'Pending' %}rgba(241, 196, 15, 0.2){% else %}rgba(52, 152, 219, 0.2){% endif %}; color: {% if booking.status == 'Confirmed' %}#2ecc71{% elif booking.status == 'Pending' %}#f1c40f{% else %}#3498db{% endif %};">
+                            {{ booking.status }}
+                        </span>
+                    </td>
+                    <td style="padding: 20px; font-weight: 700;">₹{{ booking.total_price }}</td>
+                    <td style="padding: 20px;">
+                        <div style="display: flex; gap: 10px;">
+                            <a href="#" class="btn-primary" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.3);">View</a>
+                            {% if booking.status == 'Confirmed' %}
+                            <a href="{% url 'reject_booking' booking.id %}" class="btn-primary" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3);">Reject</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">No bookings matched your criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

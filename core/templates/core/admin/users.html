@@ -1,0 +1,68 @@
+{% extends 'core/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="glass-card" style="padding: 30px; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="margin: 0;">User <span style="color: var(--accent-color);">Management</span></h2>
+        
+        <form style="display: flex; gap: 15px;" method="get">
+            <div class="search-bar" style="width: 300px; margin: 0;">
+                <i class="fas fa-search" style="color: var(--text-muted);"></i>
+                <input type="text" name="search" placeholder="Search Name or Email..." value="{{ search_query|default:'' }}">
+            </div>
+            <button type="submit" class="btn-primary" style="padding: 10px 25px;">Search</button>
+        </form>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <th style="padding: 20px;">Name</th>
+                    <th style="padding: 20px;">Email</th>
+                    <th style="padding: 20px;">Phone</th>
+                    <th style="padding: 20px;">Date Joined</th>
+                    <th style="padding: 20px;">Role</th>
+                    <th style="padding: 20px;">Status</th>
+                    <th style="padding: 20px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
+                    <td style="padding: 20px; font-weight: 600;">{{ u.name }}</td>
+                    <td style="padding: 20px;">{{ u.email }}</td>
+                    <td style="padding: 20px;">{{ u.phone_number }}</td>
+                    <td style="padding: 20px;">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td style="padding: 20px;">
+                        {% if u.is_staff %}
+                        <span style="color: var(--accent-color); font-weight: 700;"><i class="fas fa-user-shield"></i> Admin</span>
+                        {% else %}
+                        <span style="color: var(--text-muted);">Customer</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 20px;">
+                        {% if u.is_active %}
+                        <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i> Active</span>
+                        {% else %}
+                        <span style="color: #e74c3c;"><i class="fas fa-times-circle"></i> Suspended</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 20px;">
+                        <div style="display: flex; gap: 10px;">
+                            <a href="{% url 'toggle_user_status' u.id %}" class="btn-primary" style="padding: 5px 12px; font-size: 0.8rem; background: {% if u.is_active %}rgba(231, 76, 60, 0.2){% else %}rgba(46, 204, 113, 0.2){% endif %}; color: {% if u.is_active %}#e74c3c{% else %}#2ecc71{% endif %}; border: 1px solid {% if u.is_active %}rgba(231, 76, 60, 0.3){% else %}rgba(46, 204, 113, 0.3){% endif %};">
+                                {% if u.is_active %}Suspend{% else %}Activate{% endif %}
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

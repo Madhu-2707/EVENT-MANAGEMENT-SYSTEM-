@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div style="height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="glass-card" style="width: 100%; max-width: 450px; padding: 40px;">
+        <h2 style="text-align: center; margin-bottom: 30px;">
+            {% if mode == 'login' %}Login to <span style="color: var(--accent-color);">Zenvy Events</span>{% else %}Join <span style="color: var(--accent-color);">Zenvy Events</span>{% endif %}
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if mode == 'signup' %}
+                <div style="margin-bottom: 20px;">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label>Phone Number</label>
+                    <input type="text" name="phone" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label>Address</label>
+                    <textarea name="address" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;"></textarea>
+                </div>
+            {% endif %}
+
+            <div style="margin-bottom: 20px;">
+                <label>Email Address</label>
+                <input type="email" name="email" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label>Password</label>
+                <input type="password" name="password" required style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white;">
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">{% if mode == 'login' %}Login{% else %}Sign Up{% endif %}</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 30px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+            <p style="color: var(--text-muted); margin-bottom: 15px;">Or continue with</p>
+            
+            <!-- Official Google Button Container -->
+            <div id="google-login-container" style="display: flex; justify-content: center; margin-bottom: 12px;"></div>
+            
+            <!-- Facebook Login Button -->
+            <div style="margin-bottom: 12px; display: flex; justify-content: center;">
+                <button onclick="handleFacebookLogin()" style="width: 370px; padding: 10px; background: #1877F2; color: white; border: none; border-radius: 50px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: opacity 0.3s; font-family: 'Outfit', sans-serif;">
+                    <i class="fab fa-facebook" style="font-size: 1.2rem;"></i> Sign in with Facebook
+                </button>
+            </div>
+
+            <!-- Twitter Login Button -->
+            <div style="margin-bottom: 20px; display: flex; justify-content: center;">
+                <button onclick="handleTwitterLogin()" style="width: 370px; padding: 10px; background: #000000; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: opacity 0.3s; font-family: 'Outfit', sans-serif;">
+                    <i class="fab fa-x-twitter" style="font-size: 1.2rem;"></i> Sign in with Twitter
+                </button>
+            </div>
+
+            <!-- No extra script needed here as it's handled in base.html -->
+        </div>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
+            {% if mode == 'login' %}
+                Don't have an account? <a href="{% url 'signup' %}" style="color: var(--accent-color);">Sign Up</a>
+            {% else %}
+                Already have an account? <a href="{% url 'login' %}" style="color: var(--accent-color);">Login</a>
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}

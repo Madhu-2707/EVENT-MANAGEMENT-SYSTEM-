@@ -1,0 +1,142 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<section style="padding: 100px 8%;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 3rem;">Your <span style="color: var(--accent-color);">Invitation Card</span></h2>
+        <p style="color: var(--text-muted);">Share this digital invitation with your guests</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 50px; max-width: 1200px; margin: 0 auto;">
+        <!-- Invitation Preview -->
+        <div id="invitation-container" class="invitation-{{ invitation.template_choice }}" style="position: relative; aspect-ratio: 1/1.414; padding: 60px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+            <div class="inv-inner" style="border: 2px solid rgba(218, 165, 32, 0.3); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 2;">
+                <div class="decoration top" style="margin-bottom: 30px; font-size: 2rem;">✨</div>
+                
+                <h3 class="host-name" style="font-family: 'Great Vibes', cursive; font-size: 2.5rem; color: #d4af37; margin-bottom: 10px;">{{ invitation.host_name }}</h3>
+                <p class="request" style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px;">Request the honor of your presence</p>
+                
+                <h4 class="event-title" style="font-size: 2.2rem; margin-bottom: 20px;">{{ invitation.event_title }}</h4>
+                
+                <div class="date-time" style="border-top: 1px solid rgba(218, 165, 32, 0.3); border-bottom: 1px solid rgba(218, 165, 32, 0.3); padding: 15px 0; margin-bottom: 30px; width: 80%;">
+                    <p style="font-size: 1.3rem; font-weight: 600;">{{ invitation.event_date|date:"F d, Y" }}</p>
+                    <p style="font-size: 1.1rem;">{{ invitation.event_time }}</p>
+                </div>
+                
+                <div class="venue" style="margin-bottom: 30px; max-width: 80%;">
+                    <i class="fas fa-map-marker-alt" style="color: #d4af37; margin-bottom: 10px;"></i>
+                    <p style="font-size: 1rem;">{{ invitation.event_venue }}</p>
+                </div>
+                
+                {% if invitation.message %}
+                <p class="custom-message" style="font-style: italic; color: #aaa; max-width: 80%; margin-bottom: 40px;">"{{ invitation.message }}"</p>
+                {% endif %}
+
+                <div class="qr-section" style="margin-top: auto; display: flex; align-items: center; gap: 15px;">
+                    <img src="{{ invitation.qr_code.url }}" alt="Scan for Location" style="width: 80px; height: 80px; border: 2px solid #fff; border-radius: 5px;">
+                    <div style="text-align: left; font-size: 0.8rem;">
+                        <p style="font-weight: bold;">Scan Me</p>
+                        <p>For Event Location</p>
+                    </div>
+                </div>
+
+                <div class="decoration bottom" style="margin-top: 30px; font-size: 2rem;">✨</div>
+            </div>
+            
+            <!-- Dynamic Background elements based on templates -->
+            <div class="bg-pattern" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1; pointer-events: none; z-index: 1;"></div>
+        </div>
+
+        <!-- Actions -->
+        <div>
+            <div class="glass-card" style="padding: 30px; margin-bottom: 30px;">
+                <h4 style="margin-bottom: 20px;">Share with Guests</h4>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button id="download-btn" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-download"></i> Download Invitation (PNG)
+                    </button>
+                    
+                    <a href="https://wa.me/?text=You're invited! Check out the digital invitation for {{ invitation.event_title }} here: {{ request.build_absolute_uri }}" target="_blank" class="btn-primary" style="background: #25D366; border-color: #25D366; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                    </a>
+                    
+                    <a href="mailto:?subject=Invitation for {{ invitation.event_title }}&body=Hi! You are cordially invited to {{ invitation.event_title }}. View the details here: {{ request.build_absolute_uri }}" class="btn-primary" style="background: rgba(255,255,255,0.1); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-envelope"></i> Send via Email
+                    </a>
+                    
+                    <a href="{% url 'create_invitation' invitation.booking.id %}" class="btn-primary" style="background: transparent; border-color: var(--glass-border); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-edit"></i> Edit Details
+                    </a>
+                </div>
+            </div>
+
+            <div class="glass-card" style="padding: 30px;">
+                <h4 style="margin-bottom: 20px;">Why Share Digitally?</h4>
+                <ul style="list-style: none; padding: 0; color: var(--text-muted); font-size: 0.9rem;">
+                    <li style="margin-bottom: 10px;"><i class="fas fa-leaf" style="color: #27ae60;"></i> Eco-friendly & Paperless</li>
+                    <li style="margin-bottom: 10px;"><i class="fas fa-bolt" style="color: #f1c40f;"></i> Instant Delivery to Guests</li>
+                    <li style="margin-bottom: 10px;"><i class="fas fa-map-marked-alt" style="color: #3498db;"></i> Embedded GPS via QR Code</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Import font for certificates/invitations -->
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Theme Specific Styles */
+    .invitation-wedding { background: #fff5f5; color: #4a4a4a; }
+    .invitation-wedding .inv-inner { border-color: #f8bbd0; }
+    .invitation-wedding .host-name { color: #d81b60; font-family: 'Great Vibes', cursive; }
+    .invitation-wedding .bg-pattern { background: radial-gradient(circle, #f8bbd0 1px, transparent 1px); background-size: 20px 20px; }
+
+    .invitation-birthday { background: #f0faff; color: #2c3e50; }
+    .invitation-birthday .inv-inner { border-color: #3498db; }
+    .invitation-birthday .host-name { color: #e67e22; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+    .invitation-birthday .decoration { font-size: 3rem !important; }
+
+    .invitation-corporate { background: #1a1a1a; color: #ffffff; }
+    .invitation-corporate .inv-inner { border-color: #d4af37; border-width: 4px; }
+    .invitation-corporate .host-name { color: #fff; font-family: 'Playfair Display', serif; text-transform: uppercase; }
+    .invitation-corporate .bg-pattern { background: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%); background-size: 40px 40px; }
+
+    .invitation-elegant { background: #fdfbf7; color: #333; }
+    .invitation-elegant .inv-inner { border-style: double; padding: 40px; }
+    .invitation-elegant .host-name { font-family: 'Playfair Display', serif; font-style: italic; }
+
+    .invitation-minimal { background: #ffffff; color: #000000; }
+    .invitation-minimal .inv-inner { border: none; }
+    .invitation-minimal .host-name { font-family: 'Montserrat', sans-serif; letter-spacing: 5px; }
+    .invitation-minimal .date-time { border-width: 2px; border-color: #000; }
+
+    #invitation-container {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    document.getElementById('download-btn').addEventListener('click', function() {
+        const btn = this;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+
+        html2canvas(document.querySelector("#invitation-container"), {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'invitation-{{ invitation.booking.booking_id }}.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            btn.innerHTML = '<i class="fas fa-download"></i> Download Invitation (PNG)';
+            btn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

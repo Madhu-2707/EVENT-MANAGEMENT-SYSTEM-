@@ -1,0 +1,237 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .gallery-container {
+        padding: 100px 8%;
+        min-height: 100vh;
+    }
+    
+    .filter-btn {
+        padding: 10px 20px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .filter-btn.active, .filter-btn:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        transition: all 0.5s ease;
+    }
+    
+    .gallery-item {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        aspect-ratio: 4/3;
+        cursor: pointer;
+        opacity: 0;
+        transform: scale(0.9);
+        animation: fadeInScale 0.5s ease forwards;
+        border: 1px solid var(--glass-border);
+    }
+    
+    @keyframes fadeInScale {
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+    
+    .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+    
+    .gallery-category {
+        font-size: 0.8rem;
+        color: var(--accent-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+    
+    /* Lightbox Styles */
+    #lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        backdrop-filter: blur(10px);
+    }
+    
+    #lightbox img {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    
+    #lightbox.active img {
+        transform: scale(1);
+    }
+    
+    .close-lightbox {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        z-index: 10000;
+        transition: transform 0.3s ease;
+    }
+    
+    .close-lightbox:hover {
+        transform: rotate(90deg);
+        color: var(--accent-color);
+    }
+</style>
+
+<div id="lightbox">
+    <span class="close-lightbox"><i class="fas fa-times"></i></span>
+    <img src="" alt="Full size preview">
+</div>
+
+<section class="gallery-container">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 3.5rem; margin-bottom: 10px;">Our <span style="color: var(--accent-color);">Gallery</span></h2>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Capturing the magic of our most memorable events</p>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; flex-wrap: wrap;">
+        <button class="filter-btn active" data-filter="all">All Events</button>
+        <button class="filter-btn" data-filter="Wedding">Wedding</button>
+        <button class="filter-btn" data-filter="Birthday Party">Birthday Party</button>
+        <button class="filter-btn" data-filter="Engagement">Engagement</button>
+        <button class="filter-btn" data-filter="Baby Shower">Baby Shower</button>
+        <button class="filter-btn" data-filter="Corporate Event">Corporate Event</button>
+        <button class="filter-btn" data-filter="Cultural Event">Cultural Event</button>
+        <button class="filter-btn" data-filter="Music Concert">Music Concert</button>
+    </div>
+
+    <div class="gallery-grid">
+        {% for item in images %}
+        <div class="gallery-item item-card" data-category="{{ item.category }}">
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.category }}" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-category">{{ item.category }}</span>
+                    <i class="fas fa-search-plus" style="font-size: 1.5rem; color: white; align-self: center; margin-bottom: 40px;"></i>
+                </div>
+            {% else %}
+                <div style="width: 100%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-image" style="font-size: 3rem; color: var(--glass-border);"></i>
+                </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="text-align: center; grid-column: 1 / -1; color: var(--text-muted);">No gallery images found. Please check back later!</p>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = lightbox.querySelector('img');
+        const closeLightbox = document.querySelector('.close-lightbox');
+
+        // Filtering Logic
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active button
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.getAttribute('data-filter');
+
+                galleryItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    
+                    if (filter === 'all' || category === filter) {
+                        item.style.display = 'block';
+                        // Trigger re-animation
+                        item.style.animation = 'none';
+                        item.offsetHeight; // trigger reflow
+                        item.style.animation = 'fadeInScale 0.5s ease forwards';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Lightbox Logic
+        galleryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const img = this.querySelector('img');
+                if (img) {
+                    lightboxImg.src = img.src;
+                    lightbox.style.display = 'flex';
+                    setTimeout(() => {
+                        lightbox.classList.add('active');
+                    }, 10);
+                }
+            });
+        });
+
+        closeLightbox.addEventListener('click', function() {
+            lightbox.classList.remove('active');
+            setTimeout(() => {
+                lightbox.style.display = 'none';
+            }, 300);
+        });
+
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) {
+                closeLightbox.click();
+            }
+        });
+    });
+</script>
+{% endblock %}
